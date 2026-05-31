@@ -1,0 +1,77 @@
+[
+  {
+    "nazwa": "Zakupy spożywcze (Biedronka)",
+    "kategoria": "Jedzenie",
+    "kwota": 142.50
+  },
+  {
+    "nazwa": "Czynsz za mieszkanie",
+    "kategoria": "Rachunki",
+    "kwota": 2400.00
+  },
+  {
+    "nazwa": "Paliwo (Orlen)",
+    "kategoria": "Transport",
+    "kwota": 280.00
+  },
+  {
+    "nazwa": "Subskrypcja Netflix",
+    "kategoria": "Rozrywka",
+    "kwota": 43.00
+  },
+  {
+    "nazwa": "Kino i popcorn",
+    "kategoria": "Rozrywka",
+    "kwota": 68.50
+  },
+  {
+    "nazwa": "Karnet na siłownię",
+    "kategoria": "Zdrowie i Sport",
+    "kwota": 159.00
+  },
+  {
+    "nazwa": "Książka o C# / Python",
+    "kategoria": "Edukacja",
+    "kwota": 89.90
+  },
+  {
+    "nazwa": "Obiad w restauracji",
+    "kategoria": "Jedzenie",
+    "kwota": 124.00
+  },
+  {
+    "nazwa": "Leki i witaminy",
+    "kategoria": "Zdrowie i Sport",
+    "kwota": 54.20
+  },
+  {
+    "nazwa": "Buty sportowe",
+    "kategoria": "Odzież",
+    "kwota": 349.99
+  }
+][
+  {
+    "nazwa": "netflix",
+    "kategoria": "rozrywka",
+    "kwota": 60.0,
+    "miesiac": "maj"
+  },
+  {
+    "nazwa": "kino",
+    "kategoria": "rozrywka",
+    "kwota": 120.0,
+    "miesiac": "maj"
+  },
+  {
+    "nazwa": "mieszkanie",
+    "kategoria": "rachunki",
+    "kwota": 1250.0,
+    "miesiac": "maj"
+  },
+  {
+    "nazwa": "buty",
+    "kategoria": "odzież",
+    "kwota": 350.0,
+    "miesiac": "maj"
+  }
+]
