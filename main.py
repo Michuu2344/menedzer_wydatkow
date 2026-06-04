@@ -20,28 +20,32 @@
 from datetime import datetime
 import json
 teraz = datetime.today()
-data = teraz.strftime("%d-%m-%Y")
+date = teraz.strftime("%d-%m-%Y")
 
 
 
 is_running = True
 expenses = []
-def load_from_file(expenses):
-    month2 = input("Z jakiego miesiaca chcesz załadowac wydatki").lower()
-    
-    with open("data.json","r",encoding="utf-8") as plik:
-        data =json.load(plik)
-    for d in data:
-        if d['miesiac'].lower() == month2:
-            expenses.append({
-            "nazwa": d['nazwa'],
-            "kategoria": d['kategoria'],
-            "kwota": d['kwota']
-            
+def load_from_file(month):
+    #month2 = input("Z jakiego miesiaca chcesz załadowac wydatki").lower()
+    while True:
+        try:
+            with open("data.json","r",encoding="utf-8") as plik:
+                data =json.load(plik)
+            for d in data:
+                if d['miesiac'].lower() == month:
+                    expenses.append({
+                    "nazwa": d['nazwa'],
+                    "kategoria": d['kategoria'],
+                    "kwota": d['kwota'],
+                 "miesiac":d['miesiac']
         })
-        
-
-def budgets():  
+            
+        except FileNotFoundError:
+            with open("data.json","w",encoding="utf-8") as plik:
+                json.dump([],plik)
+        break
+def budgets(month):
     while True:
         try:
             budget = float(input("Jaki jest budżet na ten miesiac: "))
@@ -49,6 +53,17 @@ def budgets():
             if budget <=0:
                 print("Budżet musi byc wiekszy od 0")
                 continue
+            with open('data.json','r',encoding='utf-8') as f:
+                data = json.load(f)
+            for d in data:
+                if d['miesiac'] == month:
+                    budget -= d['kwota']
+        
+            return budget
+        
+        except FileNotFoundError:
+            data =[]
+            
             return budget
         except ValueError:
             print("Wpisz poprawna kwote")
@@ -90,12 +105,39 @@ def add_expense(expenses,budget,month):
             except ValueError:
                 print("Wpisz poprawna kwotę")
                 continue
-def show_expenses(expenses):
+def show_expenses(expenses,month):
     print("Aktualne wydatki w tym miesiącu: ")
-    posortowane = sorted(expenses, key = lambda x: x['kwota'],reverse= True)
+    thismonthexpenes = []
+    for p in expenses:
+        if p['miesiac'] == month:
+            thismonthexpenes.append({
+                "nazwa":p['nazwa'],
+                "kategoria":p['kategoria'],
+                "kwota":p['kwota'],
+                "miesiac":p['miesiac'],
+            })
+    
+    posortowane = sorted(thismonthexpenes, key = lambda x: x['kwota'],reverse= True)
     for e in posortowane:
-        print(f"{e['nazwa']}-{e['kategoria']}-{e['kwota']}zł-{e['miesiac']}")
-    #for e in expenses i pozniej zamien posortowane na e jakby nie dzialalo to
+        print(f"    {e['nazwa']}-{e['kategoria']}-{e['kwota']}zł-{e['miesiac']}")
+    
+def show_all_expenses(expenses):
+    with open('data.json','r',encoding='utf-8') as plik:     
+        all_expenses = json.load(plik)
+        miesiace = {}
+        for e in all_expenses:
+            m = e['miesiac'].lower()
+            if m not in miesiace:
+                miesiace[m] = []
+            miesiace[m].append(e)
+    for miesiac in miesiace:
+        wydatki = miesiace[miesiac]
+        suma = 0
+        print(f"===== Wydatki z {miesiac} =====")
+        for k in wydatki:
+            print(f"{k['nazwa']}|{k['kategoria']}|{k['kwota']}")
+            suma+= float(k['kwota'])
+        print(f"Suma wydatków w miesiącu {suma}")
 def search_category(expenses):
     while True:
         category3 = input("Wydatków z jakiej kategorii szukasz")
@@ -137,6 +179,7 @@ def delete_expense(expenses):
         if d['nazwa'] == delete:
             expenses.remove(d)
             print(f"Usunięto wydatek: {delete}")
+            save_to_file(expenses)
 def edit_expense(expenses,budget):
     edit = input("Wpisz nazwe wydatku, którego chcesz edytować: ")
     for d in expenses:
@@ -158,28 +201,84 @@ def edit_expense(expenses,budget):
                 return budget
             else:
                 print("Wpisz jedna z 3 podanych rzeczy")
-def budget_summary(expenses,budget):
+
+    
+def statistics():
+    with open('data.json','r',encoding='utf-8') as plik:     
+        suma = 0
+        kwoty = []
+        all_expenses = json.load(plik)
+    miesiace = {}
+    
+    for e in all_expenses:
+        m = e['miesiac'].lower()
+        amount = e['kwota']
+        if m not in miesiace:
+            miesiace[m] = amount
+        else:
+            miesiace[m] +=amount
+    #który miesiąc był najdroższy
+    print(f"Ten miesiąc był najdroższy:  {max(miesiace, key = lambda m: miesiace[m] ).capitalize()}\n")
+    
+    #największy pojedynczy wydatek (nazwa, kwota, miesiąc)
+    biggest_spending = max(all_expenses,key= lambda k: k['kwota'])
+    print(f"Największy wydatek w roku: {biggest_spending['nazwa']} | {biggest_spending['kwota']}zł | {biggest_spending['kategoria']} | {biggest_spending['miesiac']}\n")
+    
+   
+    
+    #najczęstsza kategoria
+    categories = {}
+    for k in all_expenses:
+        category = k['kategoria']
+        
+    
+    #zliczamy ile razy pojawiła sie dana kategoria
+        if category in categories:
+            categories[category] +=1
+        else:
+            categories[category] = 1
+    most_frequent = []
+    max_count = max(categories.values())
+    for g in categories:
+        if categories[g] == max_count:
+            most_frequent.append({
+                'nazwa':g,
+                'liczba':categories[g]
+            })
+    print("Najczęstsze kategorie w tym roku:\n")
+    for x in most_frequent:
+        print(f"{x['nazwa']} {x['liczba']} razy")
+    
+
+    #średnia miesięczna wydatków
+
+def budget_summary(expenses,budget,month):
     suma = 0
     for s in expenses:
-        suma += float(s['kwota'])
+        if s['miesiac'] == month:
+            suma += float(s['kwota'])
     
     
-    print(f"Budżet na ten miesiąc to {budget + suma} zł")
     
+    print(f"Budżet na ten miesiąc: {budget + suma}")
     print(f"Wydatki w tym miesiącu: {suma} zł")
-    print(f"Pozostało  {budget} zł")
+    print(f"Pozostało {budget} zł")
+    
 
 def save_to_file(expenses):
     data = []
     
     
+    
+    with open('data.json','r',encoding='utf-8') as file:
+        data = json.load(file)
     for e in expenses:
         data.append({
                 "nazwa" : e['nazwa'],
                 "kategoria" : e['kategoria'],
                 "kwota":e['kwota'],
                 "miesiac":e['miesiac']})
-    with open("data.json", "a",encoding="utf-8",) as f:
+    with open('data.json', 'w',encoding='utf-8') as f:
         json.dump(data,f,ensure_ascii=False,indent= 2)
 def month_of_the_purchase():
     month = input("Wpisz miesiąc w którym chcesz wpisywać wydatki (Styczeń, Luty ...)").lower()
@@ -196,50 +295,59 @@ def month_of_the_purchase():
 
 def menu(budget):
     print("1. Dodaj wydatek")
-    print("2. Pokaż wydatki")
-    print("3. Usuń wydatek")
-    print("4. Pokaż sumę")
-    print("5. Pokaż kategorie")
-    print("6. Ustaw budżet")
-    print("7. Zapisz do pliku")
-    print("8. Otwórz z pliku")
+    print("2. Pokaż wydatki z tego miesiąca")
+    print("3. Pokaż wszystkie wydatki")
+    print("4. Usuń wydatek")
+    print("5. Pokaż sumę")
+    print("6. Pokaż kategorie")
+    print("7. Ustaw budżet")
+    print("8. Zapisz do pliku")
     print("9. Edytuj wydatek")
     print("10. Szukaj kategorii")
     print("11. Podsumowanie budżetu")
     print("12. Wyjście")
-    
+    print("13. Statystyki")
     
     choice = input("Co chcesz zrobić: ")
     if choice == "1":
-        budget = add_expense(expenses,budget,month)
         
+        budget = add_expense(expenses,budget,month)
+         
     elif choice =="2":
         show_expenses(expenses,month)
     elif choice =="3":
-        delete_expense(expenses)
+        show_all_expenses(expenses)
+        #pokaz wszystkie wydatki z podzialem na miesiace
     elif choice =="4":
-        show_allmoney(expenses)        
+        delete_expense(expenses)
     elif choice =="5":
-        show_categories(expenses)
+        show_allmoney(expenses)        
     elif choice =="6":
-        budget =budgets(budget)
-    elif choice == "7":
-        save_to_file(expenses)
+        show_categories(expenses)
+    elif choice =="7":
+        budget =budgets(month)
     elif choice == "8":
-        load_from_file(expenses)    
+        save_to_file(expenses)    
     elif choice =="9":
        budget = edit_expense(expenses,budget)
     elif choice == "10":
         search_category(expenses)
     elif choice =="11":
-        budget_summary(expenses,budget)
+        budget_summary(expenses,budget,month)
+    elif choice =="13":
+        statistics()
     elif choice =="12":
         return False
     else:
         print("Wybierz poprawna opcje")
     return budget
-budget = budgets()
+
 month = month_of_the_purchase()
+budget = budgets(month)
+
+load_from_file(month)
+
+
 while True:
     
     
@@ -249,23 +357,3 @@ while True:
         break
     budget = result
 
-#popraw budget 🔜
-##dodaj wyszukiwanie ✅
-#dodaj remaining budget
-
-
-#ETAP 2
-#Dodaj:
-#JSON
-#sortowanie
-    ##👉 usuwanie wydatku ✅
-#👉 edytowanie wydatku ✅
-#👉 limit budżetu ✅
-#👉 sortowanie wydatków ✅
-#👉 data wydatku ✅
-#JSON + struktura projektu
-#tygodnie 3–5
-#Zastąp .txt plikiem JSON — nauczysz się json.dump/load, struktura danych zostaje ta sama
-#Podziel kod na pliki — functions.py, storage.py, main.py — pierwsze kroki z modułami
-#Obsługa wielu miesięcy — dane per miesiąc w JSON, historia poprzednich miesięcy
-#Statystyki i raporty — średnia dzienna, największy wydatek, porównanie miesięcy
