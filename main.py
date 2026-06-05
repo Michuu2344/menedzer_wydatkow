@@ -1,22 +1,4 @@
-#Co ma robić program
-#1. Dodawanie wydatków
-#nazwa wydatku
-#kategoria (jedzenie, transport, rozrywka itd.)
-#kwota
-#2. Wyświetlanie wszystkich wydatków
-#3. Suma wydatków
-#4. Wydatki w kategoriach
-#5. Limit budżetu
-#np. 3000 zł miesięcznie
-#ostrzeżenie gdy przekroczysz
-#6. Zapis do pliku .txt
-#7 chcemy aby w kategoriach byly wyswietlane rowniez podsumowanie ile pieniedzy zostalo poswiecone na dana kategorie
-#MENU
-#1. Dodaj wydatek
-#2. Pokaż wydatki
-#3. Pokaż sumę
-#4. Pokaż kategorie
-#5. Wyjście
+
 from datetime import datetime
 import json
 teraz = datetime.today()
@@ -188,9 +170,11 @@ def edit_expense(expenses,budget):
             if choice == "nazwa":
                 name= (input("Wpisz nowa nazwe twojego wydatku: "))
                 d['nazwa'] = name
+               
             elif choice == "kategoria":
                 category = input("Wpisz nowa kategorie twojego wydatku: ")
                 d['kategoria'] = category
+                
             elif choice == "kwota":
                 amount = float(input("Wpisz nową kwote twojego wydatku: "))
                 budget += d['kwota']
@@ -198,25 +182,32 @@ def edit_expense(expenses,budget):
                 
                 d['kwota'] = amount
                 
-                return budget
+               
             else:
                 print("Wpisz jedna z 3 podanych rzeczy")
-
+    return budget
     
 def statistics():
-    with open('data.json','r',encoding='utf-8') as plik:     
-        suma = 0
-        kwoty = []
-        all_expenses = json.load(plik)
-    miesiace = {}
+    while True:
+        try:
+            with open('data.json','r',encoding='utf-8') as plik:     
+                suma = 0
+                kwoty = []
+                all_expenses = json.load(plik)
+            miesiace = {}
     
-    for e in all_expenses:
-        m = e['miesiac'].lower()
-        amount = e['kwota']
-        if m not in miesiace:
-            miesiace[m] = amount
-        else:
-            miesiace[m] +=amount
+            for e in all_expenses:
+                m = e['miesiac'].lower()
+                amount = e['kwota']
+                if m not in miesiace:
+                    miesiace[m] = amount
+                else:
+                    miesiace[m] +=amount
+            break
+        except FileNotFoundError:
+            with open('data.json','w',encoding='utf-8') as plik:
+                json.dump([],plik)
+        break
     #który miesiąc był najdroższy
     print(f"Ten miesiąc był najdroższy:  {max(miesiace, key = lambda m: miesiace[m] ).capitalize()}\n")
     
@@ -249,16 +240,26 @@ def statistics():
     for x in most_frequent:
         print(f"{x['nazwa']} {x['liczba']} razy")
     
-
+    print()
     #średnia miesięczna wydatków
+    sum_of_all_expenses = 0
+    miesiace2 = set()
+    for a in all_expenses:
+        month = a['miesiac']
+        if month not in miesiace2:
+            miesiace2.add(month)
+    
+    
+    for j in all_expenses:
+        sum_of_all_expenses += float(j['kwota'])
+    monthly_avg = sum_of_all_expenses / len(miesiace2)
+    print(f"Średnia miesięcznych wydatków w tym roku to {monthly_avg}zł")
 
 def budget_summary(expenses,budget,month):
     suma = 0
     for s in expenses:
         if s['miesiac'] == month:
             suma += float(s['kwota'])
-    
-    
     
     print(f"Budżet na ten miesiąc: {budget + suma}")
     print(f"Wydatki w tym miesiącu: {suma} zł")
@@ -270,28 +271,14 @@ def save_to_file(expenses):
     
     
     
-    with open('data.json','r',encoding='utf-8') as file:
-        data = json.load(file)
-    for e in expenses:
-        data.append({
-                "nazwa" : e['nazwa'],
-                "kategoria" : e['kategoria'],
-                "kwota":e['kwota'],
-                "miesiac":e['miesiac']})
-    with open('data.json', 'w',encoding='utf-8') as f:
-        json.dump(data,f,ensure_ascii=False,indent= 2)
+    with open('data.json','w',encoding='utf-8') as file:
+        json.dump(expenses, file,ensure_ascii=False,indent = 2)
+    
+    
+    
 def month_of_the_purchase():
     month = input("Wpisz miesiąc w którym chcesz wpisywać wydatki (Styczeń, Luty ...)").lower()
     return month
-    
-            
-    
-    #with open("moje_wydatki.txt","a",encoding="utf-8") as f:
-        #f.write(f"Wydatki z {data}:\n")
-        #for e in expenses:
-            #f.write(f"    {e['nazwa']}-{e['kategoria']}-{e['kwota']:.2f}zł\n")
-
-
 
 def menu(budget):
     print("1. Dodaj wydatek")

@@ -28,6 +28,11 @@
     "kategoria": "jedzenie",
     "kwota": 450.0,
     "miesiac": "styczeń"
+  },
+  {
+    "nazwa": "klawiatura",
+    "kategoria": "rozrywka",
+    "kwota": 300.0,
+    "miesiac": "marzec"
   }
-
 ]
