@@ -1,5 +1,5 @@
-import json
 
+from database import save_expense, load_from_file, edit_expense, delete_expense
 
 class Expense:
     def __init__(self,nazwa,kategoria,kwota,miesiac):
@@ -21,6 +21,7 @@ class BudgetManager:
         x = Expense(nazwa,kategoria,kwota,self.miesiac)
         self.expenses.append(x)
         self.budget -= x.kwota
+        save_expense(x)
     def show_expenses(self):
         posortowane = sorted(self.expenses,key = lambda x: x.kwota,reverse=True)
         print("Wydatki: ")
@@ -30,28 +31,33 @@ class BudgetManager:
         for d in self.expenses:
             if d.nazwa == nazwa:
                 self.expenses.remove(d)
+                delete_expense(d.nazwa)
     def edit_expense(self,edit):    
         for d in self.expenses:
             if d.nazwa == edit:
                 choice = input("Co chcesz edytować(nazwa,kategoria,kwota): ")
                 if choice == "nazwa":
                     name= (input("Wpisz nowa nazwe twojego wydatku: "))
+                    stara = d.nazwa
                     d.nazwa = name
-               
+
+                    edit_expense(stara,d.nazwa,d.kategoria,d.kwota)
                 elif choice == "kategoria":
                     category = input("Wpisz nowa kategorie twojego wydatku: ")
                     d.kategoria = category
-                
+                    edit_expense(d.nazwa,d.nazwa,category,d.kwota)
                 elif choice == "kwota":
                     amount = float(input("Wpisz nową kwote twojego wydatku: "))
                     self.budget += d.kwota
                     self.budget -= amount
-                
+
                     d.kwota = amount
-                
+                    edit_expense(d.nazwa,d.nazwa,d.kategoria,amount)
                
                 else:
                     print("Wpisz jedna z 3 podanych rzeczy")
+
+
     def show_categories(self):
         categories = {}
         for e in self.expenses:
@@ -120,29 +126,9 @@ class BudgetManager:
         monthly_avg = suma_wydatkow / len(miesiace2)   
         print(f"Średnia miesięczna wydatków to {monthly_avg}zł")
     def save_to_file(self):
-        with open('data.json',"w",encoding='utf-8') as plik:
-            data = []
-            for e in self.expenses:
-                data.append({
-                    'nazwa':e.nazwa,
-                    'kategoria':e.kategoria,
-                    'kwota':e.kwota,
-                    'miesiac':e.miesiac
-                })
-            json.dump(data,plik,ensure_ascii=False,indent=2)
+        for e in self.expenses:
+            save_expense(e)
     def load_from_file(self):
-        while True:
-            try:
-                with open('data.json',"r",encoding='utf-8') as plik:
-                    data = json.load(plik)
-                for x in data:
-            
-                    m = Expense(x['nazwa'],x['kategoria'],x['kwota'],x['miesiac'])
-                    if x['miesiac'].lower() == self.miesiac:
-                        self.expenses.append(m)
-                        self.budget -= m.kwota
-                        
-            except FileNotFoundError:
-                with open('data.json',"w",encoding='utf-8') as plik:
-                    json.dump([],plik)
-            break
+        self.expenses = load_from_file(self.miesiac)
+        for e in self.expenses:
+            self.budget -= float(e.kwota)
