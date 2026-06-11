@@ -12,12 +12,14 @@ while True:
     print("2. Pokaż wydatki")
     print("3. Usuń wydatek")
     print("4. Edytuj wydatek")
-    print("5. Pokaż sumę")
+    print("5. Pokaż sumę wydatkow w tym miesiacu")
     print("6. Pokaż kategorie")
     print("7. Zapisz do pliku")
     print("8. Podsumowanie budżetu")
     print("9. Statystyki")
-    print("10. Wyjście")
+    print("10. Filtruj")
+    print("11. Wyjście")
+    
     choice = input("Co chcesz zrobić")
     if choice == "1":
         nazwa = input("Nazwa: ")
@@ -44,6 +46,8 @@ while True:
     elif choice == "9":
         manager.statistics()
     elif choice == "10":
+        manager.filter_by()
+    elif choice == "11":
         break
     else:
         print("Wpisz poprawną wartość")

@@ -1,5 +1,5 @@
 
-from database import save_expense, load_from_file, edit_expense, delete_expense
+from database import save_expense, load_from_file, edit_expense, delete_expense, sum_of_all_expenses, biggest_expense, most_expensive_month, expenses_count, expenses_by_category, filter_by_amount,filter_by_category,filter_by_month, most_frequent_category, monthly_avg_spending
 
 class Expense:
     def __init__(self,nazwa,kategoria,kwota,miesiac):
@@ -74,7 +74,7 @@ class BudgetManager:
         suma = 0
         for e in self.expenses:
             suma += float(e.kwota)
-        print(f"Suma wszystkich wydatkow to: {suma}zł")
+        print(f"Suma wydatków w tym miesiącu to: {suma}zł")
     def budget_summary(self):
         
         suma = 0
@@ -85,46 +85,62 @@ class BudgetManager:
         print(f"Suma wydatków w tym miesiącu {suma}zł")
         print(f"Pozostało {self.budget}zł")
     def statistics(self):
-        miesiace = {}
-
-        for e in self.expenses:
-            m = e.miesiac
-            amount = e.kwota
-            if m not in miesiace:
-                miesiace[m] = amount
-            else:
-                miesiace[m] += amount
-        print(f"Ten miesiąc był najdrozszy: {max(miesiace, key = lambda m: miesiace[m]).capitalize()}")
-        biggest_spending = max(self.expenses,key = lambda k: k.kwota)
-        print(f"Największy wydatek: w tym roku:  \n{biggest_spending}")
-       
-        categories = {}
-        for i in self.expenses:
-            if i.kategoria not in categories:
-                categories[i.kategoria] = 1
-            else:
-                categories[i.kategoria] += 1
         
-        max_count = max(categories.values())
-        most_frequent = []
-        for m in categories:
-            if categories[m] == max_count:
-                most_frequent.append({
-                    'nazwa': m,
-                    'liczba':categories[m]
-                })
-        print(f"Najczęstsze kateogorie to :")
-        for k in most_frequent:
-            print(f"{k['nazwa']} | Liczba wydatków:  {k['liczba']}")
-        miesiace2 = set()
-        for g in self.expenses:
-            if g.miesiac not in miesiace2:
-                miesiace2.add(g.miesiac)
-        suma_wydatkow = 0
-        for j in self.expenses:
-            suma_wydatkow += float(j.kwota)
-        monthly_avg = suma_wydatkow / len(miesiace2)   
-        print(f"Średnia miesięczna wydatków to {monthly_avg}zł")
+            big_expense = biggest_expense()
+            print(f"Największy wydatek w tym roku to: \n {big_expense[1]}|{big_expense[2]}|{big_expense[3]}zł|{big_expense[4]}")
+            suma_wyd = sum_of_all_expenses()
+            
+            for l in suma_wyd:
+                print(f"Suma wydatków w całym roku to {l[0]}zł")
+            expensive_month = most_expensive_month()
+            for e in expensive_month:
+                print(f"Ten miesiąc był najdroższy: {e[0]} - {e[1]}zł")
+            
+            
+            count = expenses_count()
+            print(f"Liczba wszystkich wydatków to: {count[0]}")
+            
+            exp_category = expenses_by_category()
+            print("Wydatki z kategorii: ")
+            for i in exp_category:
+                print(f"{i[0]}-{i[1]}zł")
+            frequent_category = most_frequent_category()
+            for f in frequent_category:
+                print(f"Najczęstsza kateogorie to : {f[0]} | Liczba wydatków: {f[1]}")
+            
+            
+            spendings = monthly_avg_spending()
+            for a in spendings:
+                suma_wydatkow = a[0]
+                amount_of_months = a[1]
+            monthly_avg = suma_wydatkow / amount_of_months
+              
+            print(f"Średnia miesięczna wydatków to {monthly_avg}zł")
+    def filter_by(self):
+        print("1. Filtruj po kategorii")
+        print("2. Filtruj po kwocie")
+        print("3. Filtruj po miesiącu")
+     
+        ans = input("Wybierz po czym chcesz filtrować: ")
+        if ans == "1":
+            category_to_filter = input("Z jakiej kategorii chcesz wyswietlic wydatki: ")
+            stats = filter_by_category(category_to_filter)
+            print(f"Oto wydatki z {category_to_filter}")
+            for s in stats:
+                print(f"{s[1]}-{s[2]}-{s[3]}zł-{s[4]}")
+        elif ans == "2":
+            amount_to_filter = float(input("Wydatki powyzej jakeij kwoty chcesz wyświetlić: "))
+            stats = filter_by_amount(amount_to_filter)
+            print(f"Oto wydatki powyżej kwoty {amount_to_filter:.2f} zł")
+            for s in stats:
+                print(f"{s[1]}-{s[2]}-{s[3]}zł-{s[4]}")            
+        elif ans == "3":
+            month_to_filter = input("Wydatki z jakiego miesiąca chcesz wyświetlić")
+            stats = filter_by_month(month_to_filter)
+            print(f"Oto wydatki z miesiąca: {month_to_filter}")
+            for s in stats:           
+                print(f"{s[1]}-{s[2]}-{s[3]}zł")    
+    
     def save_to_file(self):
         for e in self.expenses:
             save_expense(e)
